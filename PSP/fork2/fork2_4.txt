@@ -1,0 +1,66 @@
+Crear un programa en C fork4.c que simule un árbol de procesos como el de la figura:
+    P1
+    /  \
+   P2  P3
+  /    /
+ P5   P4
+i. El/los proceso/s padre/s deberá/n esperar a que sus hijo/s termine/n
+ii. El proceso P1 define una variable acumulado igual al número de su pid
+iii. Cada proceso hijo mostrará por pantalla el valor de dicha variable incrementado en 10 si su pid es
+par o decrementado en 100 si es impar.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t pid1, pid2, pid3, pid4, pid5;
+
+    printf("P1 (PID=%d)\n", getpid());
+
+    int acumulado = getpid(); // P1 define una variable acumulado igual al número de su pid
+
+    pid1 = fork();
+
+    if (pid1 == -1) {
+        perror("Error al crear el proceso P2");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid1 == 0) { // Proceso P2
+        acumulado += (getpid() % 2 == 0) ? 10 : -100;
+        printf("P2 (PID=%d, Acumulado=%d)\n", getpid(), acumulado);
+
+        pid2 = fork();
+
+        if (pid2 == -1) {
+            perror("Error al crear el proceso P5");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid2 == 0) { // Proceso P5
+            acumulado += (getpid() % 2 == 0) ? 10 : -100;
+            printf("P5 (PID=%d, Acumulado=%d)\n", getpid(), acumulado);
+        } else {
+            wait(NULL); // El proceso P2 espera a que P5 termine
+        }
+    } else {
+        pid3 = fork();
+
+        if (pid3 == -1) {
+            perror("Error al crear el proceso P4");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid3 == 0) { // Proceso P4
+            acumulado += (getpid() % 2 == 0) ? 10 : -100;
+            printf("P4 (PID=%d, Acumulado=%d)\n", getpid(), acumulado);
+        } else {
+            wait(NULL); // El proceso P1 espera a que P2 y P4 terminen
+        }
+    }
+
+    return 0;
+}

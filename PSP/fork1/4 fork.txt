@@ -1,0 +1,96 @@
+4. Dado el siguiente código de programa mp4.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+void main()
+{
+ printf("CCC \n");
+ if (fork()!=0)
+ {
+ printf("AAA \n");
+ } else printf("BBB \n");
+ exit(0);
+}
+a) Dibuja un gráfico de la jerarquía de procesos que genera la ejecución de este código, suponiendo
+que el pid del programa mp4 es el 1000 y los pids se generan de uno en uno en orden creciente.
+b) ¿Qué salida genera este código? ¿Podría producirse otra salida? Justifica la respuesta
+c) Modificar el código para que la salida por pantalla sea:
+ CCC
+ BBB
+ AAA
+
+_________________________________________________________________
+
+a) Para dibujar el gráfico de la jerarquía de procesos, podemos representar los procesos y sus identificadores de proceso (pids) de la siguiente manera:
+
+
+  1000 (CCC)
+   |
+   └── 1001 (BBB)
+       |
+       └── 1002 (AAA)
+
+b) La salida generada por este código dependerá del orden en que los procesos sean programados por el sistema operativo. Sin embargo, podemos analizar las posibles salidas:
+
+La salida podría ser "CCC \n AAA \n BBB \n" si el proceso padre (CCC) se ejecuta primero antes de que el proceso hijo (BBB) y el nieto (AAA) sean ejecutados. En este caso, el orden sería determinado por el scheduler del sistema operativo.
+
+También podría ser "CCC \n BBB \n AAA \n" si el proceso hijo (BBB) se ejecuta antes del proceso nieto (AAA).
+
+c) Para modificar el código de manera que la salida sea "CCC \n BBB \n AAA \n", puedes intercambiar las líneas de código que imprimen "BBB" y "AAA" dentro del bloque if. Aquí tienes el código modificado:
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+void main()
+{
+    printf("CCC \n");
+    if (fork() != 0)
+    {
+        printf("BBB \n");
+    }
+    else
+    {
+        printf("AAA \n");
+    }
+    exit(0);
+}
+Ahora, el proceso hijo (BBB) se imprimirá antes que el proceso nieto (AAA).
+
+Utiliznado wait:
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main()
+{
+    printf("CCC \n");
+
+    if (fork() != 0)
+    {
+        // Proceso padre
+        wait(NULL); // Espera a que el proceso hijo termine
+        printf("BBB \n");
+    }
+    else
+    {
+        // Proceso hijo
+        if (fork() != 0)
+        {
+            // Proceso hijo (BBB)
+            wait(NULL); // Espera a que el proceso nieto termine
+            printf("AAA \n");
+        }
+        else
+        {
+            // Proceso nieto (AAA)
+            // Código del proceso nieto
+        }
+    }
+
+    // Línea de salida común para todos los procesos
+    exit(0);
+}
+

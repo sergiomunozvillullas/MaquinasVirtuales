@@ -1,0 +1,104 @@
+. Crear un programa en C ipc5.c que realice las siguientes funciones:
+
+     pipe1
+   /       \
+P1          P2
+  \        /
+    pipe2
+P1 manda pipe2 al P2 y el P2 manda pipe1 al P1
+
+i. Deberá responder al esquema de la figura
+i. El proceso hijo P2 solicitará por pantalla el número de DNI (el usuario lo introducirá sin espacios y
+sin la letra)
+ii. El proceso padre P1, recibe el DNI por el pipe1, calculará la letra del NIF y escribirá el resultado
+por el pipe2
+iii. El proceso hijo P2 mostrará por pantalla la letra calculada
+Ejemplo Salida:
+$ ./ipc5
+Introduce el número de tu DNI: 50123456
+la letra del NIF es Q
+$ ./ipc5
+Introduce el número de tu DNI: 87654321
+la letra del NIF es X
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+// Función para calcular la letra del NIF
+char calcularLetraNIF(int dni) {
+    char letrasNIF[] = "TRWAGMYFPDXBNJZSQVHLCKE";
+    return letrasNIF[dni % 23];
+}
+
+int main() {
+    int pipe1[2], pipe2[2];
+    pid_t pid;
+
+    // Crear los pipes
+    if (pipe(pipe1) == -1 || pipe(pipe2) == -1) {
+        perror("Error al crear los pipes");
+        exit(EXIT_FAILURE);
+    }
+
+    // Se crea un proceso hijo
+    pid = fork();
+
+    if (pid == -1) {
+        perror("Error al crear el proceso hijo");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid == 0) {
+        // Proceso hijo (P2)
+        close(pipe1[1]); // Cierra el descriptor de escritura del pipe1
+        close(pipe2[0]); // Cierra el descriptor de lectura del pipe2
+
+        int dni;
+        printf("Introduce el número de tu DNI: ");
+        scanf("%d", &dni);
+
+        // Escribir el DNI en pipe1
+        write(pipe1[1], &dni, sizeof(dni));
+
+        // Leer la letra del NIF del pipe2
+        char letraNIF;
+        read(pipe2[0], &letraNIF, sizeof(letraNIF));
+
+        // Mostrar la letra del NIF por pantalla
+        printf("La letra del NIF es %c\n", letraNIF);
+
+        // Cierre de descriptores no utilizados
+        close(pipe1[1]);
+        close(pipe2[0]);
+
+        exit(EXIT_SUCCESS);
+    } else {
+        // Proceso padre (P1)
+        close(pipe1[0]); // Cierra el descriptor de lectura del pipe1
+        close(pipe2[1]); // Cierra el descriptor de escritura del pipe2
+
+        // Leer el DNI del pipe1
+        int dni;
+        read(pipe1[0], &dni, sizeof(dni));
+
+        // Calcular la letra del NIF
+        char letraNIF = calcularLetraNIF(dni);
+
+        // Escribir la letra del NIF en pipe2
+        write(pipe2[1], &letraNIF, sizeof(letraNIF));
+
+        // Cierre de descriptores no utilizados
+        close(pipe1[0]);
+        close(pipe2[1]);
+
+        // Esperar a que el proceso hijo termine
+        wait(NULL);
+
+        exit(EXIT_SUCCESS);
+    }
+
+    return 0;
+}

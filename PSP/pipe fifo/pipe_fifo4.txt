@@ -1,0 +1,104 @@
+. Crear un programa en C ipc4.c que realice las siguientes funciones:
+     pipe1
+   /       \
+P1          P2
+  \        /
+    pipe2
+
+i. Deberá responder al esquema de la figura
+ii. El proceso padre P1 generará un número aleatorio entre 0 y 10 en el pipe1
+iii. El proceso hijo P2 deberá calcular el resultado del factorial de dicho número y escribir el resultado
+en el pipe2
+iv. El proceso padre se encargará de mostrar por pantalla el resultado del cálculo.
+Ejemplo Salida:
+$ ./ipc4
+El proceso padre genera el numero 6 en el pipe1
+El factorial calculado por el proceso hijo: 6 != 720
+$ ./ipc4
+El proceso padre genera el numero 0 en el pipe1
+El factorial calculado por el proceso hijo: 0 != 1
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int factorial(int n) {
+    if (n == 0 || n == 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+int main() {
+    int pipe1[2], pipe2[2];
+    pid_t pid;
+
+    // Crear los pipes
+    if (pipe(pipe1) == -1 || pipe(pipe2) == -1) {
+        perror("Error al crear los pipes");
+        exit(EXIT_FAILURE);
+    }
+
+    // Se crea un proceso hijo
+    pid = fork();
+
+    if (pid == -1) {
+        perror("Error al crear el proceso hijo");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid == 0) {
+        // Proceso hijo (P2)
+        close(pipe1[1]); // Cierra el descriptor de escritura del pipe1
+        close(pipe2[0]); // Cierra el descriptor de lectura del pipe2
+
+        int numero;
+        read(pipe1[0], &numero, sizeof(numero));
+
+        int resultado = factorial(numero);
+
+        // Escribir el resultado en pipe2
+        write(pipe2[1], &resultado, sizeof(resultado));
+
+        // Cierre de descriptores no utilizados
+        close(pipe1[0]);
+        close(pipe2[1]);
+
+        exit(EXIT_SUCCESS);
+    } else {
+        // Proceso padre (P1)
+        close(pipe1[0]); // Cierra el descriptor de lectura del pipe1
+        close(pipe2[1]); // Cierra el descriptor de escritura del pipe2
+
+        // Generar un número aleatorio entre 0 y 10
+        int numero = rand() % 11;
+
+        printf("El proceso padre genera el número %d en el pipe1\n", numero);
+
+        // Escribir el número en pipe1
+        write(pipe1[1], &numero, sizeof(numero));
+
+        // Cierre de descriptores no utilizados
+        close(pipe1[1]);
+
+        // Esperar a que el proceso hijo termine
+        wait(NULL);
+
+        // Leer el resultado del pipe2
+        int resultado;
+        read(pipe2[0], &resultado, sizeof(resultado));
+
+        // Mostrar el resultado por pantalla
+        printf("El factorial calculado por el proceso hijo: %d! = %d\n", numero, resultado);
+
+        // Cierre de descriptores no utilizados
+        close(pipe2[0]);
+
+        exit(EXIT_SUCCESS);
+    }
+
+    return 0;
+}

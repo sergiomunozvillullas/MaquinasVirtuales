@@ -1,0 +1,59 @@
+2. Crear un programa en C mp2.c que simule un árbol de procesos como el de la figura:
+
+[]-[]-[]
+
+i. El proceso P1 es padre de P2 y abuelo de P3
+ii. El proceso P2 es padre de P3 e hijo de P1
+iii. El proceso P3 es hijo de P2 y nieto de P1
+iv. El proceso P3 deberá mostrar por pantalla su pid y el de su padre, indicando que es el proceso P3
+v. El proceso P2 deberá mostrar por pantalla su pid y el de su padre, indicando que es el proceso P2
+vi. El proceso P1 deberá mostrar por pantalla su pid y el de su hijo, indicando que es el proceso P1
+vii. Los procesos padres deberán esperar a que sus hijos terminen
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t p1, p2, p3;
+
+    // Proceso P1
+    printf("Soy el proceso P1, mi PID es %d\n", getpid());
+
+    // Crear proceso P2
+    p1 = getpid(); // Guardar el PID de P1
+    p2 = fork();
+
+    if (p2 == -1) {
+        perror("Error al crear el proceso P2");
+        exit(EXIT_FAILURE);
+    }
+
+    if (p2 == 0) { // Proceso P2
+        printf("Soy el proceso P2, mi PID es %d, mi padre es P1 con PID %d\n", getpid(), p1);
+
+        // Crear proceso P3
+        p3 = fork();
+
+        if (p3 == -1) {
+            perror("Error al crear el proceso P3");
+            exit(EXIT_FAILURE);
+        }
+
+        if (p3 == 0) { // Proceso P3
+            printf("Soy el proceso P3, mi PID es %d, mi padre es P2 con PID %d\n", getpid(), getppid());
+        } else {
+            // P2 espera a que P3 termine
+            wait(NULL);
+            printf("El proceso P2 ha terminado\n");
+        }
+    } else {
+        // P1 espera a que P2 termine
+        wait(NULL);
+        printf("El proceso P1 ha terminado\n");
+    }
+
+    return 0;
+}

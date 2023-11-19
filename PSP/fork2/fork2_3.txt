@@ -1,0 +1,88 @@
+Crear un programa en C fork3.c que simule un árbol de procesos como el de la figura:
+   P1
+    |
+   P2
+  /  \
+ P3  P4
+  |   |
+ P5  P6
+
+iii. Los procesos padre siempre esperarán a que terminen los procesos hijo
+iv. Cada proceso mostrará su pid, el pid de su abuelo (si lo tuviera) 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t pid1, pid2, pid3, pid4, pid5, pid6;
+
+    printf("P1 (PID=%d)\n", getpid());
+
+    pid1 = fork();
+
+    if (pid1 == -1) {
+        perror("Error al crear el proceso P2");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid1 == 0) { // Proceso P2
+        printf("P2 (PID=%d, Abuelo=%d)\n", getpid(), getppid());
+
+        pid2 = fork();
+
+        if (pid2 == -1) {
+            perror("Error al crear el proceso P3");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid2 == 0) { // Proceso P3
+            printf("P3 (PID=%d, Abuelo=%d)\n", getpid(), getppid());
+
+            pid3 = fork();
+
+            if (pid3 == -1) {
+                perror("Error al crear el proceso P5");
+                exit(EXIT_FAILURE);
+            }
+
+            if (pid3 == 0) { // Proceso P5
+                printf("P5 (PID=%d, Abuelo=%d)\n", getpid(), getppid());
+            } else {
+                wait(NULL); // El proceso P3 espera a que P5 termine
+            }
+        } else {
+            pid4 = fork();
+
+            if (pid4 == -1) {
+                perror("Error al crear el proceso P4");
+                exit(EXIT_FAILURE);
+            }
+
+            if (pid4 == 0) { // Proceso P4
+                printf("P4 (PID=%d, Abuelo=%d)\n", getpid(), getppid());
+
+                pid6 = fork();
+
+                if (pid6 == -1) {
+                    perror("Error al crear el proceso P6");
+                    exit(EXIT_FAILURE);
+                }
+
+                if (pid6 == 0) { // Proceso P6
+                    printf("P6 (PID=%d, Abuelo=%d)\n", getpid(), getppid());
+                } else {
+                    wait(NULL); // El proceso P4 espera a que P6 termine
+                }
+            } else {
+                wait(NULL); // El proceso P2 espera a que P3 y P4 terminen
+            }
+        }
+    } else {
+        wait(NULL); // El proceso P1 espera a que P2 termine
+    }
+
+    return 0;
+}

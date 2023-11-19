@@ -1,0 +1,90 @@
+1. Crear dos programas en C fifo11.c fifo12.c que realicen las siguientes funciones:
+Proceso fifo11 manda fifo1 a proceso fifo12 y proceso fifo 12 manda fifo12 a proceso fifo 11
+i. Deberá responder al esquema de la figura. El proceso fifo11 se encargará de la gestión del pipe
+FIFO1 y el proceso fifo12 de la del pipe FIFO2
+ii. El proceso fifo11 generará un número aleatorio entre 0 y 10 en el pipe FIFO1
+iii. El proceso fifo12 deberá calcular el resultado del factorial de dicho número y escribir el resultado
+el pipe FIFO2
+iv. El proceso fifo11 se encargará de mostrar por pantalla el resultado del cálculo
+v. Al finalizar ambos procesos, se deberán eliminar los pipes.
+
+
+
+1.
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+int main() {
+    // Crear el pipe FIFO1
+    mkfifo("FIFO1", 0666);
+
+    int fd1 = open("FIFO1", O_WRONLY);
+
+    // Generar un número aleatorio entre 0 y 10
+    int numero = rand() % 11;
+
+    printf("fifo11 genera el número %d en el FIFO1\n", numero);
+
+    // Escribir el número en FIFO1
+    write(fd1, &numero, sizeof(numero));
+
+    // Cierre del descriptor
+    close(fd1);
+
+    // Eliminar el pipe FIFO1
+    unlink("FIFO1");
+
+    return 0;
+}
+
+
+
+2.
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+int factorial(int n) {
+    if (n == 0 || n == 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+int main() {
+    // Crear el pipe FIFO2
+    mkfifo("FIFO2", 0666);
+
+    int fd1 = open("FIFO1", O_RDONLY);
+    int fd2 = open("FIFO2", O_WRONLY);
+
+    // Leer el número de FIFO1
+    int numero;
+    read(fd1, &numero, sizeof(numero));
+
+    // Calcular el factorial del número
+    int resultado = factorial(numero);
+
+    printf("fifo12 calcula el factorial de %d y escribe el resultado en FIFO2\n", numero);
+
+    // Escribir el resultado en FIFO2
+    write(fd2, &resultado, sizeof(resultado));
+
+    // Cierre de descriptores
+    close(fd1);
+    close(fd2);
+
+    // Eliminar los pipes
+    unlink("FIFO1");
+    unlink("FIFO2");
+
+    return 0;
+}

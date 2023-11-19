@@ -1,0 +1,56 @@
+2. Crear un programa en C fork2.c que simule un árbol de procesos como el de la figura:
+P1 - P2- P3- P4
+i. Los procesos padre siempre esperarán a que terminen los procesos hijo
+ii. Cada proceso mostrará su pid, el pid del padre y la suma de ambos pids
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t pid1, pid2, pid3, pid4;
+
+    printf("P1 (PID=%d)\n", getpid());
+
+    pid1 = fork();
+
+    if (pid1 == -1) {
+        perror("Error al crear el proceso P2");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid1 == 0) { // Proceso P2
+        printf("P2 (PID=%d, PPID=%d, Suma=%d)\n", getpid(), getppid(), getpid() + getppid());
+
+        pid2 = fork();
+
+        if (pid2 == -1) {
+            perror("Error al crear el proceso P3");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid2 == 0) { // Proceso P3
+            printf("P3 (PID=%d, PPID=%d, Suma=%d)\n", getpid(), getppid(), getpid() + getppid());
+
+            pid3 = fork();
+
+            if (pid3 == -1) {
+                perror("Error al crear el proceso P4");
+                exit(EXIT_FAILURE);
+            }
+
+            if (pid3 == 0) { // Proceso P4
+                printf("P4 (PID=%d, PPID=%d, Suma=%d)\n", getpid(), getppid(), getpid() + getppid());
+            } else {
+                wait(NULL); // El proceso P3 espera a que P4 termine
+            }
+        } else {
+            wait(NULL); // El proceso P2 espera a que P3 termine
+        }
+    } else {
+        wait(NULL); // El proceso P1 espera a que P2 termine
+    }
+
+    return 0;
+}

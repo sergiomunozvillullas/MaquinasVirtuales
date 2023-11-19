@@ -1,0 +1,58 @@
+3. Crear un programa en C mp3.c que simule un árbol de procesos como el de la figura:
+
+
+    P1
+   / \
+  P2  P3
+
+
+i. El proceso P1 es padre de P2 y de P3
+ii. El proceso P2 deberá dormir 10 segundos y mostrar el mensaje “Despierto” al finalizar
+iii. El proceso P3 deberá mostrar por pantalla su pid y el de su padre, indicando que es el proceso P3
+iv. El/los proceso/s padre/s deberá/n esperar a que sus hijo/s termine/n
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t p1, p2, p3;
+
+    // Proceso P1
+    printf("Soy el proceso P1, mi PID es %d\n", getpid());
+
+    // Crear proceso P2
+    p1 = getpid(); // Guardar el PID de P1
+    p2 = fork();
+
+    if (p2 == -1) {
+        perror("Error al crear el proceso P2");
+        exit(EXIT_FAILURE);
+    }
+
+    if (p2 == 0) { // Proceso P2
+        sleep(10); // Dormir 10 segundos
+        printf("Despierto, soy el proceso P2, mi PID es %d, mi padre es P1 con PID %d\n", getpid(), p1);
+    } else {
+        // Crear proceso P3
+        p3 = fork();
+
+        if (p3 == -1) {
+            perror("Error al crear el proceso P3");
+            exit(EXIT_FAILURE);
+        }
+
+        if (p3 == 0) { // Proceso P3
+            printf("Soy el proceso P3, mi PID es %d, mi padre es P1 con PID %d\n", getpid(), getppid());
+        } else {
+            // P1 espera a que P2 y P3 terminen
+            waitpid(p2, NULL, 0);
+            waitpid(p3, NULL, 0);
+            printf("El proceso P1 ha terminado\n");
+        }
+    }
+
+    return 0;
+}

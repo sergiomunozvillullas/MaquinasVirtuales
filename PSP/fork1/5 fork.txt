@@ -1,0 +1,79 @@
+5. Dado el siguiente código de programa mp5.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+void main()
+{
+ pid_t pid1, pid2;
+ printf("AAA \n");
+ pid1 = fork();
+ if (pid1==0)
+ {
+ printf("BBB \n");
+ }
+ else
+ {
+ pid2 = fork();
+ printf("CCC \n");
+ }
+ exit(0);
+}
+a) Dibuja un gráfico de la jerarquía de procesos que genera la ejecución de este código, suponiendo
+que el pid del programa mp5 es el 1000 y los pids se generan de uno en uno en orden creciente.
+b) ¿Qué salida genera este código? ¿Podría producirse otra salida? Justifica la respuesta
+c) Añade el código necesario para que el orden de ejecución sea tal que los respectivos procesos
+padre sean los últimos que se ejecuten.
+
+
+a) Para dibujar el gráfico de la jerarquía de procesos, podemos representar los procesos y sus identificadores de proceso (pids) de la siguiente manera:
+
+scss
+Copy code
+   1000 (AAA)
+   /      \
+1001(BBB)  1002(CCC)
+b) La salida generada por este código dependerá del orden en que los procesos sean programados por el sistema operativo. Sin embargo, podemos analizar las posibles salidas:
+
+La salida podría ser "AAA \n CCC \n BBB \n" si el proceso padre (AAA) se ejecuta primero antes de que los procesos hijos (CCC y BBB) sean ejecutados. En este caso, el orden sería determinado por el scheduler del sistema operativo.
+
+También podría ser "AAA \n BBB \n CCC \n" si el proceso hijo generado por el primer fork (BBB) se ejecuta antes que el proceso hijo generado por el segundo fork (CCC).
+
+c) Para garantizar que los respectivos procesos padres sean los últimos en ejecutarse, puedes introducir llamadas a wait después de cada fork para asegurarte de que un proceso padre espere a que su respectivo hijo termine antes de continuar. Aquí tienes el código modificado:
+
+c
+Copy code
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+void main()
+{
+    pid_t pid1, pid2;
+    printf("AAA \n");
+    pid1 = fork();
+
+    if (pid1 == 0)
+    {
+        printf("BBB \n");
+        exit(0);
+    }
+    else
+    {
+        pid2 = fork();
+        if (pid2 == 0)
+        {
+            printf("CCC \n");
+            exit(0);
+        }
+        else
+        {
+            // Padre espera a que los hijos terminen
+            waitpid(pid1, NULL, 0);
+            waitpid(pid2, NULL, 0);
+        }
+    }
+    exit(0);
+}
+Ahora, con las llamadas waitpid, aseguramos que el proceso padre espere a que ambos procesos hijos terminen antes de finalizar. Esto garantiza que los respectivos procesos padres sean los últimos en ejecutarse.

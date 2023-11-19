@@ -1,0 +1,69 @@
+Crear un programa en C fork1.c que simule un árbol de procesos como el de la figura:
+      1
+     / \
+    2   3
+       |
+       4
+
+i. Si el identificador de proceso es un número par, el proceso mostrará su pid y el de su padre
+ii. Si el identificador de proceso es un número impar, solo mostrará su pid
+iii. Los procesos padre siempre esperarán a que terminen los procesos hijo
+a) ¿Cuál será el orden de ejecución de los procesos?¿Será siempre el mismo? Justifica la respuesta
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t pid1, pid2, pid3;
+
+    printf("Proceso padre (PID=%d)\n", getpid());
+
+    pid1 = fork();
+
+    if (pid1 == -1) {
+        perror("Error al crear el proceso hijo 1");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid1 == 0) { // Proceso hijo 1
+        printf("Proceso hijo 1 (PID=%d, PPID=%d)\n", getpid(), getppid());
+
+        pid2 = fork();
+
+        if (pid2 == -1) {
+            perror("Error al crear el proceso hijo 2");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid2 == 0) { // Proceso hijo 2
+            printf("Proceso hijo 2 (PID=%d, PPID=%d)\n", getpid(), getppid());
+        } else {
+            wait(NULL); // El proceso hijo 1 espera al hijo 2
+        }
+    } else {
+        wait(NULL); // El proceso padre espera al hijo 1
+
+        pid3 = fork();
+
+        if (pid3 == -1) {
+            perror("Error al crear el proceso hijo 3");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid3 == 0) { // Proceso hijo 3
+            printf("Proceso hijo 3 (PID=%d)\n", getpid());
+        } else {
+            wait(NULL); // El proceso padre espera al hijo 3
+        }
+    }
+
+    return 0;
+}
+
+a)El proceso padre crea el primer hijo (hijo 1).
+El proceso hijo 1 crea su propio hijo (hijo 2).
+Ambos, el proceso hijo 1 y el proceso hijo 2, esperan a que sus respectivos hijos terminen antes de imprimir sus mensajes.
+En cuanto al orden de ejecución, no se puede predecir con certeza debido a la planificación del sistema operativo. Sin embargo, se puede garantizar que los padres siempre esperarán a que sus hijos terminen antes de imprimir sus mensajes, ya que hemos colocado las llamadas wait en los lugares apropiados del código.

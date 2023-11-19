@@ -1,0 +1,79 @@
+Crear dos programas en C fifo21.c fifo22.c que realicen las siguientes funciones:
+Proceso fifo21 manda pipe02 a proceso fifo22 y proceso fifo 22 manda pipe02 a proceso fifo 21
+i. Deberá responder al esquema de la figura: proceso fifo21 se encargará de la gestión del pipe
+PIPE02
+ii. El proceso fifo21 generará un número aleatorio entre 0 y 10 en el pipe PIPE02
+iii. El proceso fifo22 deberá calcular el resultado del factorial de dicho número y escribir el
+resultado en el pipe PIPE02
+iv. El proceso fifo21 se encargará de mostrar por pantalla el resultado del cálculo
+v. Al finalizar los procesos se deberá eliminar el pipe
+
+1.
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+int main() {
+    // Crear el pipe FIFO2
+    mkfifo("PIPE02", 0666);
+
+    int fd2 = open("PIPE02", O_WRONLY);
+
+    // Generar un número aleatorio entre 0 y 10
+    int numero = rand() % 11;
+
+    printf("fifo21 genera el número %d en el PIPE02\n", numero);
+
+    // Escribir el número en PIPE02
+    write(fd2, &numero, sizeof(numero));
+
+    // Cierre del descriptor
+    close(fd2);
+
+    return 0;
+}
+2.
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+int factorial(int n) {
+    if (n == 0 || n == 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+int main() {
+    // Crear el pipe FIFO2
+    mkfifo("PIPE02", 0666);
+
+    int fd2 = open("PIPE02", O_RDONLY);
+
+    // Leer el número de PIPE02
+    int numero;
+    read(fd2, &numero, sizeof(numero));
+
+    // Calcular el factorial del número
+    int resultado = factorial(numero);
+
+    printf("fifo22 calcula el factorial de %d y escribe el resultado en PIPE02\n", numero);
+
+    // Escribir el resultado en PIPE02 (para simular el envío de vuelta)
+    write(fd2, &resultado, sizeof(resultado));
+
+    // Cierre del descriptor
+    close(fd2);
+
+    // Eliminar el pipe FIFO2
+    unlink("PIPE02");
+
+    return 0;
+}
