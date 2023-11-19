@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<departamentos>
+	<departamento>
+		<dept_no>10</dept_no>
+		<dnombre>CONTABILIDAD</dnombre>
+		<loc>SEVILLA</loc>
+	</departamento>
+	<departamento>
+		<dept_no>20</dept_no>
+		<dnombre>INVESTIGACION</dnombre>
+		<loc>MADRID</loc>
+	</departamento>
+	<departamento>
+		<dept_no>30</dept_no>
+		<dnombre>VENTAS</dnombre>
+		<loc>BARCELONA</loc>
+	</departamento>
+	
+
+</departamentos>

@@ -1,0 +1,36 @@
+{
+	"biblioteca":
+	{
+
+		"libro": [ 		{
+			"titulo": "La vida está en otra parte",
+			"autor": "Milan Kundera",
+			"fechaPublicacion":
+			{
+				"año": 1973
+			}
+		}, 		{
+			"titulo": "Pantaleón y las visitadoras",
+			"autor":
+			[
+				{ "fechaNacimiento": "28/03/1936" },
+				"Mario Vargas Llosa"
+			],
+			"fechaPublicacion":
+			{
+				"año": 1973
+			}
+		}, 		{
+			"titulo": "Conversación en la catedral",
+			"autor":
+			[
+				{ "fechaNacimiento": "28/03/1936" },
+				"Mario Vargas Llosa"
+			],
+			"fechaPublicacion":
+			{
+				"año": 1969
+			}
+		} ]
+	}
+}

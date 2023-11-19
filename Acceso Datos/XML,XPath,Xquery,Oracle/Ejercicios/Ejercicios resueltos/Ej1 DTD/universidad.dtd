@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!ELEMENT universidad (alumnos, profesores, asignaturas)>
+<!ENTITY % datospersonales "nombre, apellido, apellido?, (DNI | (pasaporte, pais)), fechanacimiento, direccion?, telefono*, email*">
+<!ELEMENT nombre (#PCDATA)>
+<!ELEMENT apellido (#PCDATA)>
+<!ELEMENT DNI (#PCDATA)>
+<!ELEMENT pasaporte (#PCDATA)>
+<!ELEMENT pais (#PCDATA)>
+<!ELEMENT fechanacimiento (dia, mes, anio)>
+<!ELEMENT dia (#PCDATA)>
+<!ELEMENT mes (#PCDATA)>
+<!ELEMENT anio (#PCDATA)>
+<!ELEMENT direccion (#PCDATA)>
+<!ELEMENT telefono (#PCDATA)>
+<!ELEMENT email (#PCDATA)>
+<!ELEMENT alumnos (alumno)*>
+<!ELEMENT alumno (%datospersonales;, matriculado*)>
+<!ELEMENT matriculado EMPTY>
+<!ATTLIST matriculado
+	asignatura IDREF #REQUIRED
+	nota (NP | AP | SS | NT | SB | MH) "NP"
+>
+<!ELEMENT profesores (profesor)*>
+<!ELEMENT profesor (%datospersonales;, tutoria*)>
+<!ATTLIST profesor
+	despacho CDATA #REQUIRED
+	asignaturas IDREFS #IMPLIED
+>
+<!ELEMENT tutoria (inicio, fin)>
+<!ELEMENT inicio (#PCDATA)>
+<!ELEMENT fin (#PCDATA)>
+<!ELEMENT asignaturas (asignatura)*>
+<!ELEMENT asignatura (titulo, carrera, creditos, curso)>
+<!ATTLIST asignatura
+	codigo ID #REQUIRED
+>
+<!ELEMENT titulo (#PCDATA)>
+<!ELEMENT carrera (#PCDATA)>
+<!ELEMENT creditos (#PCDATA)>
+<!ELEMENT curso (#PCDATA)>

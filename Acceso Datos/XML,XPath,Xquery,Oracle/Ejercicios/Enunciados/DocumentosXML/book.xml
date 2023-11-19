@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<bookstore>
+
+<book>
+<title lang="eng">Harry Potter</title>
+<price>29.99</price>
+</book>
+
+<book>
+<title lang="eng">Learning XML</title>
+<price>39.95</price>
+</book>
+
+<book>
+<title lang="esp">El Quijote</title>
+<price>20.98</price>
+</book>
+
+<book>
+<title lang="ita">Il nome della rosa</title>
+<price>21.95</price>
+</book>
+
+</bookstore>

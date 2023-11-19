@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!ELEMENT contactos (persona*)>
+
+<!ELEMENT persona (nombre, apellido, apellido?, DNI, fechanacimiento, direccion?, telefono*, email*)>
+
+<!ELEMENT nombre (#PCDATA)>
+
+<!ELEMENT apellido (#PCDATA)>
+
+<!ELEMENT DNI (#PCDATA)>
+
+<!ELEMENT fechanacimiento (dia, mes, anio)>
+<!ELEMENT dia (#PCDATA)>
+<!ELEMENT mes (#PCDATA)>
+<!ELEMENT anio (#PCDATA)>
+
+<!ELEMENT direccion (calle,numero,poblacion,pais)>
+<!ELEMENT calle (#PCDATA)>
+<!ELEMENT numero (#PCDATA)>
+<!ELEMENT poblacion (#PCDATA)>
+<!ELEMENT pais (#PCDATA)>
+
+<!ELEMENT telefono (#PCDATA)>
+
+<!ELEMENT email (#PCDATA)>

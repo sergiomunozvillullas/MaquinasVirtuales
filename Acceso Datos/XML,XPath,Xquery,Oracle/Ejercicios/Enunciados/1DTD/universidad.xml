@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE universidad SYSTEM "universidad.dtd">
+<universidad>
+	<alumnos>
+		<alumno>
+			<nombre>pepe</nombre>
+			<apellido>pinillos</apellido>
+			<pasaporte>434235</pasaporte>
+			<pais>hola</pais>
+			<fechanacimiento>
+				<dia>32</dia>
+				<mes>43</mes>
+				<anio>5256</anio>
+			</fechanacimiento>
+			<matriculado asignatura="F89" nota="NT"/>
+		</alumno>
+	</alumnos>
+	<profesores>
+		<profesor despacho="" asignaturas="F89 A990">
+			<nombre>Pepito</nombre>
+			<apellido/>
+			<DNI/>
+			<fechanacimiento>
+				<dia/>
+				<mes/>
+				<anio/>
+			</fechanacimiento>
+			<tutoria>
+				<inicio/>
+				<fin/>
+			</tutoria>
+		</profesor>
+	</profesores>
+	<asignaturas>
+		<asignatura codigo="F89">
+			<titulo>LMI</titulo>
+			<carrera>ITIS</carrera>
+			<creditos>4,5</creditos>
+			<curso>OP</curso>
+		</asignatura>
+		<asignatura codigo="A990">
+			<titulo>hola</titulo>
+			<carrera/>
+			<creditos/>
+			<curso/>
+		</asignatura>
+	</asignaturas>
+</universidad>
