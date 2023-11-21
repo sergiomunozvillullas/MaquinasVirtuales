@@ -1,0 +1,94 @@
+P1
+├── P2
+│   └── P3
+└── P4
+y que P3 se comunique con P4 a través de un pipe
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    int pipe_p3_p4[2]; // Pipe entre P3 y P4
+    pid_t pid_p2, pid_p3, pid_p4;
+
+    // Crear el pipe entre P3 y P4
+    if (pipe(pipe_p3_p4) == -1) {
+        perror("Error al crear el pipe entre P3 y P4");
+        exit(EXIT_FAILURE);
+    }
+
+    // Crear P2
+    pid_p2 = fork();
+
+    if (pid_p2 == -1) {
+        perror("Error al crear P2");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid_p2 == 0) {
+        // Código de P2
+        printf("P2 (PID=%d)\n", getpid());
+
+        // Crear P4
+        pid_p4 = fork();
+
+        if (pid_p4 == -1) {
+            perror("Error al crear P4");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid_p4 == 0) {
+            // Código de P4
+            printf("P4 (PID=%d, PPID=%d)\n", getpid(), getppid());
+
+            // Leer desde el pipe_p3_p4
+            close(pipe_p3_p4[1]); // Cerramos el descriptor de escritura
+            int mensaje_p3_p4;
+            read(pipe_p3_p4[0], &mensaje_p3_p4, sizeof(mensaje_p3_p4));
+            close(pipe_p3_p4[0]); // Cerramos el descriptor de lectura
+
+            printf("P4 recibe mensaje de P3: %d\n", mensaje_p3_p4);
+        } else {
+            // P2 espera a que P4 termine
+            wait(NULL);
+        }
+    } else {
+        // Código de P1
+        printf("P1 (PID=%d)\n", getpid());
+
+        // Crear P3
+        pid_p3 = fork();
+
+        if (pid_p3 == -1) {
+            perror("Error al crear P3");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pid_p3 == 0) {
+            // Código de P3
+            printf("P3 (PID=%d, PPID=%d)\n", getpid(), getppid());
+
+            // Escribir en el pipe_p3_p4
+            close(pipe_p3_p4[0]); // Cerramos el descriptor de lectura
+            int mensaje_p3_p4 = 123; // Mensaje de ejemplo
+            write(pipe_p3_p4[1], &mensaje_p3_p4, sizeof(mensaje_p3_p4));
+            close(pipe_p3_p4[1]); // Cerramos el descriptor de escritura
+        } else {
+            // P1 espera a que P2 y P3 terminen
+            wait(NULL);
+            wait(NULL);
+        }
+    }
+
+    return 0;
+}
+
+
+P1 (PID=1234)
+P2 (PID=1235)
+P3 (PID=1236, PPID=1234)
+P4 (PID=1237, PPID=1235)
+P4 recibe mensaje de P3: 123

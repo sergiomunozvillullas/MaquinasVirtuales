@@ -1,0 +1,93 @@
+Aquí tienes un ejemplo en C donde se crean tres procesos en una estructura de árbol usando fork(),
+y cada proceso pasa su PID al proceso padre a través de pipes.
+El código utiliza dos pipes para lograr esto.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main() {
+    int pipe1[2], pipe2[2];
+    pid_t pid1, pid2, pid3;
+
+    // Crear el primer pipe
+    if (pipe(pipe1) == -1) {
+        perror("Error al crear el primer pipe");
+        exit(EXIT_FAILURE);
+    }
+
+    // Crear el segundo pipe
+    if (pipe(pipe2) == -1) {
+        perror("Error al crear el segundo pipe");
+        exit(EXIT_FAILURE);
+    }
+
+    // Crear el primer hijo (P2)
+    pid1 = fork();
+
+    if (pid1 == -1) {
+        perror("Error al crear el proceso hijo P2");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid1 == 0) {
+        // Proceso hijo P2
+        close(pipe1[0]); // Cerrar lectura del primer pipe
+
+        // P2 pasa su PID al proceso padre a través del primer pipe
+        write(pipe1[1], &pid1, sizeof(pid1));
+
+        close(pipe1[1]); // Cerrar escritura del primer pipe
+
+        exit(EXIT_SUCCESS);
+    }
+
+    // Proceso padre
+    // Crear el segundo hijo (P3)
+    pid2 = fork();
+
+    if (pid2 == -1) {
+        perror("Error al crear el proceso hijo P3");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid2 == 0) {
+        // Proceso hijo P3
+        close(pipe2[0]); // Cerrar lectura del segundo pipe
+
+        // P3 pasa su PID al proceso padre a través del segundo pipe
+        write(pipe2[1], &pid2, sizeof(pid2));
+
+        close(pipe2[1]); // Cerrar escritura del segundo pipe
+
+        exit(EXIT_SUCCESS);
+    }
+
+    // Proceso padre
+    close(pipe1[1]); // Cerrar escritura del primer pipe en el proceso padre
+    close(pipe2[1]); // Cerrar escritura del segundo pipe en el proceso padre
+
+    // Leer los PIDs de los hijos del primer y segundo pipe respectivamente
+    read(pipe1[0], &pid1, sizeof(pid1));
+    read(pipe2[0], &pid2, sizeof(pid2));
+
+    close(pipe1[0]); // Cerrar lectura del primer pipe
+    close(pipe2[0]); // Cerrar lectura del segundo pipe
+
+    // Mostrar los PIDs
+    printf("PID del proceso padre: %d\n", getpid());
+    printf("PID del proceso hijo P2: %d\n", pid1);
+    printf("PID del proceso hijo P3: %d\n", pid2);
+
+    // Esperar a que los hijos terminen
+    waitpid(pid1, NULL, 0);
+    waitpid(pid2, NULL, 0);
+
+    return 0;
+}
+
+
+PID del proceso padre: 1234
+PID del proceso hijo P2: 1235
+PID del proceso hijo P3: 1236

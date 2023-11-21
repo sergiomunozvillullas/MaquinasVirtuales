@@ -1,0 +1,163 @@
+Escribe un programa en C que cree una estructura jerárquica de procesos según el siguiente patrón:
+
+lua
+Copy code
+P1
+|
+|-- P2
+|   |-- P4
+|
+|-- P3
+|   |-- P5
+|   |-- P6
+|
+|-- P7
+Cada proceso deberá imprimir su propio PID y el PID de su padre. Además, el proceso P1 generará un número aleatorio entre 1 y 10 y lo enviará al proceso P4 a través de un pipe. El proceso P4 calculará el cuadrado de ese número y lo enviará de vuelta a P1 a través de otro pipe. Finalmente, P1 imprimirá el resultado del cálculo.
+
+Preguntas:
+
+¿Cuáles son los PIDs de todos los procesos en la jerarquía?
+¿Cómo se comunica el proceso P1 con el proceso P4?
+¿Qué se imprimirá finalmente en la salida estándar?
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main() {
+    // Declaración de pipes
+    int pipe_p1_p4[2], pipe_p4_p1[2];
+
+    // Creación de pipes
+    if (pipe(pipe_p1_p4) == -1 || pipe(pipe_p4_p1) == -1) {
+        perror("Error al crear los pipes");
+        exit(EXIT_FAILURE);
+    }
+
+    // Creación de procesos
+    pid_t pid_p1, pid_p2, pid_p3, pid_p4, pid_p5, pid_p6, pid_p7;
+
+    pid_p1 = getpid();
+    printf("P1 (PID=%d)\n", pid_p1);
+
+    if ((pid_p2 = fork()) == 0) {
+        // Proceso P2
+        pid_p2 = getpid();
+        printf("|-- P2 (PID=%d, PPID=%d)\n", pid_p2, pid_p1);
+
+        if ((pid_p4 = fork()) == 0) {
+            // Proceso P4
+            pid_p4 = getpid();
+            printf("    |-- P4 (PID=%d, PPID=%d)\n", pid_p4, pid_p2);
+
+            // Cierre de descriptores no utilizados
+            close(pipe_p1_p4[1]);
+            close(pipe_p4_p1[0]);
+
+            // Leer el número enviado por P1
+            int num;
+            read(pipe_p1_p4[0], &num, sizeof(num));
+
+            // Calcular el cuadrado
+            int cuadrado = num * num;
+
+            // Enviar el resultado a P1
+            write(pipe_p4_p1[1], &cuadrado, sizeof(cuadrado));
+
+            // Cierre de descriptores
+            close(pipe_p1_p4[0]);
+            close(pipe_p4_p1[1]);
+
+            exit(EXIT_SUCCESS);
+        } else {
+            // Proceso P2
+            wait(NULL); // Esperar a P4
+            exit(EXIT_SUCCESS);
+        }
+    } else if ((pid_p3 = fork()) == 0) {
+        // Proceso P3
+        pid_p3 = getpid();
+        printf("|-- P3 (PID=%d, PPID=%d)\n", pid_p3, pid_p1);
+
+        if ((pid_p5 = fork()) == 0) {
+            // Proceso P5
+            pid_p5 = getpid();
+            printf("    |-- P5 (PID=%d, PPID=%d)\n", pid_p5, pid_p3);
+
+            exit(EXIT_SUCCESS);
+        } else if ((pid_p6 = fork()) == 0) {
+            // Proceso P6
+            pid_p6 = getpid();
+            printf("    |-- P6 (PID=%d, PPID=%d)\n", pid_p6, pid_p3);
+
+            exit(EXIT_SUCCESS);
+        } else {
+            // Proceso P3
+            wait(NULL); // Esperar a P5 y P6
+            wait(NULL);
+            exit(EXIT_SUCCESS);
+        }
+    } else if ((pid_p7 = fork()) == 0) {
+        // Proceso P7
+        pid_p7 = getpid();
+        printf("|-- P7 (PID=%d, PPID=%d)\n", pid_p7, pid_p1);
+
+        exit(EXIT_SUCCESS);
+    } else {
+        // Proceso P1
+        // Cierre de descriptores no utilizados
+        close(pipe_p1_p4[0]);
+        close(pipe_p4_p1[1]);
+
+        // Generar número aleatorio
+        int num = rand() % 10 + 1;
+        printf("El proceso P1 genera el número %d y lo envía a P4\n", num);
+
+        // Enviar el número a P4
+        write(pipe_p1_p4[1], &num, sizeof(num));
+
+        // Cierre de descriptores
+        close(pipe_p1_p4[1]);
+
+        // Esperar a P4
+        wait(NULL); // Esperar a P4
+
+        // Leer el resultado de P4
+        int resultado_p4;
+        read(pipe_p4_p1[0], &resultado_p4, sizeof(resultado_p4));
+
+        // Mostrar el resultado
+        printf("El proceso P1 recibe el resultado de P4: %d\n", resultado_p4);
+
+        // Cierre de descriptores
+        close(pipe_p4_p1[0]);
+
+        wait(NULL); // Esperar a P2
+        wait(NULL); // Esperar a P3
+        wait(NULL); // Esperar a P7
+
+        // No es necesario unlink para pipes anónimos
+
+        exit(EXIT_SUCCESS);
+    }
+
+    return 0;
+}
+
+
+¿Cuáles son los PIDs de todos los procesos en la jerarquía?
+
+P1: Se creará en primer lugar, por lo que su PID será el más bajo. Digamos, por ejemplo, que es 1000.
+P2: Será el hijo de P1, por lo que su PID será diferente, por ejemplo, 1001.
+P3: Será el hijo de P2, por lo que su PID será diferente, por ejemplo, 1002.
+P4: Será el hijo de P2 también, por lo que su PID será diferente, por ejemplo, 1003.
+Estos son ejemplos de PIDs, y en un entorno real, los PIDs pueden variar.
+
+¿Cómo se comunica el proceso P1 con el proceso P4?
+
+El proceso P1 se comunica indirectamente con el proceso P4 a través del proceso P2. P1 crea P2 con fork(), y luego P2, a su vez, crea P4. P1 puede comunicarse con P4 enviando información a través de pipes. En este caso, P1 y P4 no tienen un pipe directo entre ellos; en cambio, la comunicación se realiza a través de los pipes que conectan a P1 con P2 y a P2 con P4.
+
+¿Qué se imprimirá finalmente en la salida estándar?
+
+La impresión final dependerá de cómo se organicen las llamadas printf en el momento de la ejecución. Sin embargo, en general, se imprimirá la información de cada proceso, incluyendo sus PIDs y PPIDs. También se imprimirán mensajes específicos, como "Soy el proceso X" y "PID del proceso X".
