@@ -1,0 +1,1 @@
+introdyuce por pantalla un numero en lenguaje c
