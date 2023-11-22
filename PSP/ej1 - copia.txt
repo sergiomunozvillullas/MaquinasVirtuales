@@ -1,0 +1,11 @@
+#include <stdio.h>
+
+int main() {
+    // Declarar una variable para almacenar el número
+    int numero = 42;  // Puedes cambiar 42 por el número que desees imprimir
+
+    // Imprimir el número por pantalla
+    printf("El número es: %d\n", numero);
+
+    return 0;
+}
