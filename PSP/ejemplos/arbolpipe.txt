@@ -2,6 +2,11 @@ Aquí tienes un ejemplo en C donde se crean tres procesos en una estructura de �
 y cada proceso pasa su PID al proceso padre a través de pipes.
 El código utiliza dos pipes para lograr esto.
 
+ P1 (Proceso Padre)
+        / \
+      P2   P3
+PIPES
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
