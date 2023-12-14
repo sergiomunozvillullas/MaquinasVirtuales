@@ -1,7 +1,9 @@
 Escribe un programa en C que cree una estructura jerárquica de procesos según el siguiente patrón:
 
 lua
-Copy code
+
+PIPE de 1 a 4 y de 4 a 1
+
 P1
 |
 |-- P2
