@@ -9,7 +9,7 @@ El código utiliza dos pipes para lograr esto.
 
 int main() {
     int pipe1[2], pipe2[2];
-    pid_t pid1, pid2, pid3;
+    pid_t pid1, pid2;
 
     // Crear el primer pipe
     if (pipe(pipe1) == -1) {
