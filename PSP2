@@ -1,1 +1,79 @@
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h> 
+#include <time.h>
+#include <string.h>
+#include <math.h>
+
+
+void main(){
+
+     int fd[2],fd2[2]; 
+     char buffer[5],num1;
+     
+
+     pid_t pid,pid2;
+     
+    
+     // Creamos el pipe
+     pipe(fd); 
+     
+     //Se crea un proceso hijo
+     pid = fork();
+
+     if (pid==0)
+     
+     {		
+                pipe(fd2); 
+                pid2 = fork();
+  		if(pid2 == 0){
+  			
+  			        
+
+  			close(fd[1]); // Cierra el descriptor de escritura
+                	int periodoAmor=0,prestamo=0;
+     			double interes = 0,t=0,n=0,cuotaMensual;
+                	
+                	printf("Introduce el periodo de amortización: ");
+               	scanf("%d", &periodoAmor);
+                	
+                	read(fd[0], &prestamo, sizeof(prestamo));
+                	read(fd[0], &interes, sizeof(interes));
+                	
+                	close(fd2[0]);
+                	t = interes/(12*100);
+			n = periodoAmor*12;
+			
+			cuotaMensual = prestamo*t*pow((t+1),n)/(pow((t+1),n)-1);          	
+	                	
+    			write(fd2[1],&cuotaMensual,sizeof(cuotaMensual));
+  		}
+  		else{
+  			
+  			wait(NULL);//espera al tercer proceso*
+  			close(fd2[1]);
+  			double total=0;
+  			read(fd2[0], &total, sizeof(total));
+    			  			printf("Cuota resultante: %le",total);
+
+    		}
+     }
+     else
+     {
+     		close(fd[0]); // Cierra el descriptor de lectura
+     		int prestamo = 0,periodoAmor=0;
+     		double interes = 0;
+                printf("Introduce el importe del prestamo: ");
+                scanf("%d", &prestamo);
+                write(fd[1], &prestamo, sizeof(prestamo));  
+                printf("Introduce el interes: ");
+                scanf("%lf", &interes);
+                write(fd[1], &interes, sizeof(interes));  
+                  
+                wait(NULL);    
+     }
+}
+
+
